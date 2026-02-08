@@ -1708,22 +1708,6 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 8ae16e03881114911842e1a1cd2c7d38, type: 3}
   m_PrefabInstance: {fileID: 1415515588}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &925739681
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 925739680}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4c53c4d0a78ba49e8bbc5d8194a02d92, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
-  playerCamera: {fileID: 330585546}
-  moveSpeed: 6
-  jumpHeight: 1.5
-  gravity: -15
 --- !u!143 &925739682
 CharacterController:
   m_ObjectHideFlags: 0
@@ -1754,6 +1738,21 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 8ae16e03881114911842e1a1cd2c7d38, type: 3}
   m_PrefabInstance: {fileID: 1415515588}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &925739686
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 925739680}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 54a18829eac596142847174092437248, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DevilMovement
+  targetPlayer: {fileID: 0}
+  chaseSpeed: 5
+  gravity: -15
 --- !u!1001 &931205378
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2534,7 +2533,7 @@ PrefabInstance:
       addedObject: {fileID: 925739682}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 8ae16e03881114911842e1a1cd2c7d38, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 925739681}
+      addedObject: {fileID: 925739686}
   m_SourcePrefab: {fileID: 100100000, guid: 8ae16e03881114911842e1a1cd2c7d38, type: 3}
 --- !u!1001 &1431740634
 PrefabInstance:
