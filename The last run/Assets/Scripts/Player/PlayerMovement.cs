@@ -9,8 +9,10 @@ public class PlayerMovement : MonoBehaviour
     public Animator animator; 
     public Transform playerCamera;
     public float moveSpeed = 6f;
-    public float jumpHeight = 0.4f;
-    public float gravity = -15f;
+    public float walkSpeed = 3f;
+    public float backwardWalkSpeed = 3f;
+    public float jumpHeight = 0.2f;
+    public float gravity = -20f;
 
     public float rotationSpeed = 10f;
 
@@ -21,7 +23,9 @@ public class PlayerMovement : MonoBehaviour
     private InputAction moveAction;
     private InputAction jumpAction;
     private InputAction gatheringAction;
+    private InputAction walkAction;
     private Inventory inventory;
+    private float nextDriftLogTime;
 
     void Awake()
     {
@@ -46,6 +50,9 @@ public class PlayerMovement : MonoBehaviour
         
         gatheringAction = new InputAction("Gather", binding: "<Keyboard>/e");
         gatheringAction.AddBinding("<Gamepad>/buttonWest");
+        
+        walkAction = new InputAction("Walk", binding: "<Keyboard>/leftShift");
+        walkAction.AddBinding("<Gamepad>/leftTrigger");
     }
 
     void OnEnable()
@@ -53,6 +60,7 @@ public class PlayerMovement : MonoBehaviour
         moveAction.Enable();
         jumpAction.Enable();
         gatheringAction.Enable();
+        walkAction.Enable();
     }
 
     void OnDisable()
@@ -60,6 +68,7 @@ public class PlayerMovement : MonoBehaviour
         moveAction.Disable();
         jumpAction.Disable();
         gatheringAction.Disable();
+        walkAction.Disable();
     }
 
     void Update()
@@ -67,23 +76,48 @@ public class PlayerMovement : MonoBehaviour
         isGrounded = controller.isGrounded;
         if (isGrounded && velocity.y < 0)
         {
-            velocity.y = -2f;
+            velocity.y = -2f; // Small negative value to keep the player grounded and allow for smooth jumping again
         }
 
         // --- Movement ---
         Vector2 input = moveAction.ReadValue<Vector2>();
+        bool isWalking = walkAction.IsPressed();
+
+        // Cancel gathering if player starts moving
+        // if (isGathering && input.magnitude >= 0.1f)
+        // {
+        //     animator.SetBool("isGathering", false);
+        //     isGathering = false;
+        // }
 
         // Movement & rotation
         if(input.magnitude >= 0.1f)
         {
-            animator.SetBool("isRunning", true); // Set animation parameter
+            // Set animation state based on walking
+            if (isWalking)
+            {
+                animator.SetBool("isRunning", false);
+                animator.SetBool("isWalking", true);
+            }
+            else
+            {
+                animator.SetBool("isRunning", true);
+                animator.SetBool("isWalking", false);
+            }
 
             // Store camera angle before any modifications
             float cameraYAngle = playerCamera.eulerAngles.y;
 
             // Move relative to camera
             Vector3 moveDir = Quaternion.Euler(0, cameraYAngle, 0) * new Vector3(input.x, 0, input.y);
-            controller.Move(moveDir * moveSpeed * Time.deltaTime);
+            
+            // Use appropriate speed
+            float currentSpeed = moveSpeed;
+            if (isWalking)
+            {
+                currentSpeed = (input.y < -0.1f) ? backwardWalkSpeed : walkSpeed;
+            }
+            controller.Move(moveDir * currentSpeed * Time.deltaTime);
 
             // Only rotate player if moving forward (positive Y input)
             if (input.y > 0.1f)
@@ -98,36 +132,41 @@ public class PlayerMovement : MonoBehaviour
                 cameraEuler.y = transform.eulerAngles.y;
                 playerCamera.eulerAngles = cameraEuler;
             }
+            else if (input.y >= 0 && input.x != 0)
+            {
+                // Rotate player when moving sideways (A or D without W or S)
+                float targetAngle = Mathf.Atan2(input.x, input.y) * Mathf.Rad2Deg + cameraYAngle;
+                Quaternion targetRotation = Quaternion.Euler(0, targetAngle, 0);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+            }
+            
+            // Handle backward walking animation
+            if (input.y < -0.1f)
+            {
+                animator.SetBool("isWalkingBackwards", true);
+            }
+            else
+            {
+                animator.SetBool("isWalkingBackwards", false);
+            }
         }
         else
         {
             animator.SetBool("isRunning", false); // Set animation parameter
+            animator.SetBool("isWalking", false); // Reset walking animation
+            animator.SetBool("isWalkingBackwards", false); // Reset backward walking animation
         }
 
         // --- Jump ---
         if (jumpAction.triggered && isGrounded)
         {
             animator.SetTrigger("isJumping"); // Trigger jump animation
-            // velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
         }
         // --- Gathering ---
         if (gatheringAction.triggered && isGrounded)
         {
-            // Check for nearby gatherable objects
-            Collider[] hitColliders = Physics.OverlapSphere(transform.position, 2f);
-            foreach (var hitCollider in hitColliders)
-            {
-                if (hitCollider.CompareTag("Gatherable"))
-                {
-                    animator.SetTrigger("isGathering"); // Trigger gathering animation
-                    // Turn the player to face the gatherable object
-                    // Add item to inventory
-                    // inventory.AddItem(hitCollider.gameObject);
-                    // Optionally, destroy the gatherable object
-                    Destroy(hitCollider.gameObject);
-                    break; // Only gather one item per action
-                }
-            }
+            Debug.Log("Gathering action triggered!");
+            animator.SetTrigger("isGathering"); // Trigger gathering animation
         }
 
         // --- Gravity ---
@@ -143,4 +182,32 @@ public class PlayerMovement : MonoBehaviour
         Debug.Log("Applying jump velocity!");
         velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
     }
+
+    public void DoGather()
+    {
+
+        Debug.Log("DoGather called!");
+        // Check for nearby gatherable objects
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, 2f);
+        foreach (var hitCollider in hitColliders)
+        {
+            if (hitCollider.CompareTag("Gatherable"))
+            {
+                // Check if player is facing the gatherable object
+                Vector3 directionToGatherable = (hitCollider.transform.position - transform.position).normalized;
+                float angle = Vector3.Angle(transform.forward, directionToGatherable);
+                
+                // Only gather if facing within 90 degrees (in front of player)
+                if (angle <= 60f)
+                {
+                    // Add item to inventory
+                    // inventory.AddItem(hitCollider.gameObject);
+                    // Destroy the gatherable object
+                    Destroy(hitCollider.gameObject);
+                    break; // Only gather one item per action
+                }
+            }
+        }
+    }
+
 }
