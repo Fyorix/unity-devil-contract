@@ -14,7 +14,7 @@ public class DevilMovement : MonoBehaviour
     void Awake()
     {
         controller = GetComponent<CharacterController>();
-        
+
         // Auto-find player if not assigned
         if (targetPlayer == null)
         {
@@ -38,7 +38,7 @@ public class DevilMovement : MonoBehaviour
         if (targetPlayer != null)
         {
             Vector3 directionToPlayer = (targetPlayer.position - transform.position).normalized;
-            
+
             // Flatten direction to avoid flying/sinking
             directionToPlayer.y = 0f;
             directionToPlayer.Normalize();
