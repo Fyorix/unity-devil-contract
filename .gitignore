@@ -31,8 +31,10 @@ The last run/[Aa]ssets/Plugins/Editor/JetBrains*
 *.DotSettings.user
 
 # Visual Studio cache directory
+*/.vs/
+../.vs
 .vs/
-
+*vs*
 # Gradle cache directory
 .gradle/
 
