@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -9,7 +10,12 @@ public class DevilManagement : MonoBehaviour
     public float detectionRange;
     public LayerMask obstacleMask;
 
+    public float patrolSpeed = 3f;
+    public float chaseSpeed = 3.5f;
+    public float timeFactorSpeed = 0.0001f;
+    public float maxSpeed = 6f;
 
+    public Time escapeTime;
     private bool playerDetected;
 
 
@@ -23,16 +29,17 @@ public class DevilManagement : MonoBehaviour
             if (player != null)
                 targetPlayer = player.transform;
         }
+        agent.speed = patrolSpeed;
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (!playerDetected)
-        {
-            if (IsPlayerInRange())
-                playerDetected = true;
-        }
+        playerDetected = IsPlayerInRange();
+        agent.speed = playerDetected ? chaseSpeed : patrolSpeed;
+        chaseSpeed = Math.Min(chaseSpeed + timeFactorSpeed, maxSpeed);
+        patrolSpeed = Math.Min(patrolSpeed + timeFactorSpeed, maxSpeed);
+
         if (playerDetected && targetPlayer != null)
         {
             agent.SetDestination(targetPlayer.position);
