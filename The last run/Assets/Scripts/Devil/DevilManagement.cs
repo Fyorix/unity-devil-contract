@@ -4,19 +4,26 @@ using UnityEngine.AI;
 
 public class DevilManagement : MonoBehaviour
 {
+    [Header("Target")]
     public Transform targetPlayer;
     private NavMeshAgent agent;
 
     public float detectionRange;
     public LayerMask obstacleMask;
 
-    public float patrolSpeed = 3f;
+    [Header("Speed")]
+    public float patrolSpeed = 1.5f;
     public float chaseSpeed = 3.5f;
     public float timeFactorSpeed = 0.0001f;
-    public float maxSpeed = 6f;
+    public float maxChasingSpeed = 6f;
+    public float maxPatrolingSpeed = 3f;
 
-    public Time escapeTime;
-    private bool playerDetected;
+    [Header("Patrol")]
+    public float escapeCooldown = 3f;
+    private float lastTimeSeen;
+    private bool isChasing;
+    public Transform[] patrolPoints;
+    private int currentPatrolIndex = 0;
 
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -30,19 +37,41 @@ public class DevilManagement : MonoBehaviour
                 targetPlayer = player.transform;
         }
         agent.speed = patrolSpeed;
+        isChasing = false;
+        if (patrolPoints.Length > 0)
+        {
+            agent.SetDestination(patrolPoints[currentPatrolIndex].position);
+        }
+
     }
 
     // Update is called once per frame
     void Update()
     {
-        playerDetected = IsPlayerInRange();
-        agent.speed = playerDetected ? chaseSpeed : patrolSpeed;
-        chaseSpeed = Math.Min(chaseSpeed + timeFactorSpeed, maxSpeed);
-        patrolSpeed = Math.Min(patrolSpeed + timeFactorSpeed, maxSpeed);
+        if (IsPlayerInRange())
+        {
+            isChasing = true;
+            lastTimeSeen = Time.time;
+        }
+        else
+        {
+            if (Time.time - lastTimeSeen > escapeCooldown)
+            {
+                isChasing = false;
+            }
+        }
 
-        if (playerDetected && targetPlayer != null)
+        agent.speed = isChasing ? chaseSpeed : patrolSpeed;
+        chaseSpeed = Math.Min(chaseSpeed + timeFactorSpeed, maxChasingSpeed);
+        patrolSpeed = Math.Min(patrolSpeed + timeFactorSpeed, maxPatrolingSpeed);
+
+        if (isChasing && targetPlayer != null)
         {
             agent.SetDestination(targetPlayer.position);
+        }
+        else
+        {
+            Patrol();
         }
     }
 
@@ -88,5 +117,17 @@ public class DevilManagement : MonoBehaviour
         }
 
         return false;
+    }
+
+    void Patrol()
+    {
+        if (patrolPoints.Length == 0) return;
+
+        if (!agent.pathPending && agent.remainingDistance < 1f)
+        {
+            Debug.Log("Agent at patrol point nb" + currentPatrolIndex);
+            currentPatrolIndex = (currentPatrolIndex + 1) % patrolPoints.Length;
+            agent.SetDestination(patrolPoints[currentPatrolIndex].position);
+        }
     }
 }
