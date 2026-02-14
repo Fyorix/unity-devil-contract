@@ -38,6 +38,25 @@ public class PlayerMovement : MonoBehaviour
         inventory = GetComponent<Inventory>();
         Cursor.lockState = CursorLockMode.Locked;
 
+        // Auto-assign camera: prefer Camera.main, fallback to any Camera in scene
+        if (playerCamera == null)
+        {
+            Camera cam = Camera.main;
+            if (cam == null)
+            {
+                cam = FindObjectOfType<Camera>();
+            }
+
+            if (cam != null)
+            {
+                playerCamera = cam.transform;
+            }
+            else
+            {
+                Debug.LogWarning("PlayerMovement: no Camera found in scene to assign to playerCamera. Using player transform as fallback in calculations.");
+            }
+        }
+
         // --- Init Input Actions (Code-only approach) ---
         moveAction = new InputAction("Move", binding: "<Gamepad>/leftStick");
         moveAction.AddCompositeBinding("Dpad")
@@ -88,8 +107,8 @@ public class PlayerMovement : MonoBehaviour
         Vector2 input = moveAction.ReadValue<Vector2>();
         bool isWalking = walkAction.IsPressed();
 
-        // Get camera direction
-        float cameraYAngle = playerCamera.eulerAngles.y;
+        // Get camera direction (fallback to player transform if no camera assigned)
+        float cameraYAngle = (playerCamera != null) ? playerCamera.eulerAngles.y : transform.eulerAngles.y;
 
         // Movement & rotation
         if(input.magnitude >= 0.1f)
@@ -216,8 +235,11 @@ public class PlayerMovement : MonoBehaviour
                 continue;
             }
 
-            Vector3 dirTo = hitCollider.transform.position - playerCamera.position;
-            float angle = Vector3.Angle(playerCamera.forward, dirTo);
+            // Use camera transform if available, otherwise fall back to player transform
+            Vector3 camPos = (playerCamera != null) ? playerCamera.position : transform.position;
+            Vector3 camForward = (playerCamera != null) ? playerCamera.forward : transform.forward;
+            Vector3 dirTo = hitCollider.transform.position - camPos;
+            float angle = Vector3.Angle(camForward, dirTo);
             if (angle > gatherAngle)
             {
                 // Skip items outside the camera-facing cone
