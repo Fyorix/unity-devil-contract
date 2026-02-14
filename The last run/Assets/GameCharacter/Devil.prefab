@@ -129,6 +129,16 @@ MonoBehaviour:
   targetPlayer: {fileID: 0}
   chaseSpeed: 5
   gravity: -15
+  walkSpeed: 2
+  runSpeed: 5
+  shoutDuration: 2.833
+  laughDuration: 9.75
+  autoShout: 1
+  minShoutInterval: 40
+  maxShoutInterval: 60
+  autoLaugh: 1
+  minLaughInterval: 20
+  maxLaughInterval: 30
 --- !u!95 &8326152957573654508 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 5866666021909216657, guid: e82311e5b9b7a1e42b18bb901f611855, type: 3}

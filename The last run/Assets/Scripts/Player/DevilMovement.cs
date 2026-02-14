@@ -12,11 +12,10 @@ public class DevilMovement : MonoBehaviour
     [Header("Movement Speeds")]
     public float walkSpeed = 2f;
     public float runSpeed = 5f;
-    public float runDistance = 6f; // if farther than this, run
 
     [Header("Emotes")]
-    public float shoutDuration = 2.66f; // seconds for the shout emote, has to match the animation length
-    public float laughDuration = 1.5f; // seconds for the laugh emote
+    public float shoutDuration = 2.833f; // seconds for the shout emote, has to match the animation length
+    public float laughDuration = 9.75f; // seconds for the laugh emote
     private bool isEmoting = false;
     // Run activation flag: walk by default, run only when activated via API
     private bool runActive = false;
