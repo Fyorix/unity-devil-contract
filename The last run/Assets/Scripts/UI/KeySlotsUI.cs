@@ -12,7 +12,7 @@ public class KeySlotsUI : MonoBehaviour
     [SerializeField] private Sprite filledSlotSprite;
 
     [Header("Settings")]
-    [SerializeField] private int maxSlotsToShow = 3;
+    [SerializeField] private int maxSlotsToShow = 2;
 
     void OnEnable()
     {
@@ -67,6 +67,14 @@ public class KeySlotsUI : MonoBehaviour
             bool filled = i < keyCount;
             slotImages[i].sprite = filled ? filledSlotSprite : emptySlotSprite;
             slotImages[i].enabled = slotImages[i].sprite != null;
+        }
+
+        // Ensure any remaining slot images beyond `slots` are disabled
+        for (int i = slots; i < slotImages.Length; i++)
+        {
+            if (slotImages[i] == null) continue;
+            slotImages[i].sprite = null;
+            slotImages[i].enabled = false;
         }
     }
 }
