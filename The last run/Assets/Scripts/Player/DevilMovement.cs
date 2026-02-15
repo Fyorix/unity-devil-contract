@@ -38,7 +38,7 @@ public class DevilMovement : MonoBehaviour
     void Awake()
     {
         controller = GetComponent<CharacterController>();
-        
+
         // Auto-find player if not assigned
         if (targetPlayer == null)
         {

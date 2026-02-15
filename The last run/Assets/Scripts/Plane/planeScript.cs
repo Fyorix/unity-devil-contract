@@ -1,4 +1,6 @@
+using System;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class planeScript : MonoBehaviour
 {
@@ -15,6 +17,10 @@ public class planeScript : MonoBehaviour
 
     private float timer;
     private bool chasing = false;
+
+    [Header("OnCollision")]
+    public string sceneName;
+
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -62,6 +68,16 @@ public class planeScript : MonoBehaviour
         if (transform.position.y > player.position.y + 2f)
         {
             transform.position += Vector3.down * descendSpeed * Time.deltaTime;
+        }
+    }
+
+    void OnCollisionEnter(Collision collision)
+    {
+        if (collision.transform == player)
+        {
+            // charge nouvelle scene à la collision avec le player
+            Debug.Log("collision with player");
+            SceneManager.LoadScene(sceneName);
         }
     }
 }
