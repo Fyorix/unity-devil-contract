@@ -27,6 +27,8 @@ public class CinematicDialogTrigger : MonoBehaviour
     private CharacterController controller;
     private CameraController cameraController;
 
+    private Vector3 SaveCameraPosition;
+
     private void Start()
     {
         playerMovement = player.GetComponent<PlayerMovement>();
@@ -48,6 +50,7 @@ public class CinematicDialogTrigger : MonoBehaviour
             if (controller != null) controller.enabled = false;
             if (cameraController != null) cameraController.enabled = false;
 
+            SaveCameraPosition = playerCamera.transform.position;
             playerCamera.transform.position = cinematicCameraPosition;
             playerCamera.transform.rotation = Quaternion.Euler(cinematicCameraRotationEuler);
 
@@ -94,5 +97,6 @@ public class CinematicDialogTrigger : MonoBehaviour
         if (cameraController != null) cameraController.enabled = true;
         stairs.GetComponent<MeshRenderer>().enabled = true;
         stairs.GetComponent<MeshCollider>().enabled = true;
+        playerCamera.transform.position = SaveCameraPosition;
     }
 }

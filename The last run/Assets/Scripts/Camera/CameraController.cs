@@ -3,15 +3,14 @@ using UnityEngine.InputSystem;
 
 public class CameraController : MonoBehaviour
 {
-    [Header("Target Settings")]
-    public Transform playerBody; // Assign your Player object here
-    public Vector3 offset = new Vector3(0, 1.6f, 0); // Height of eyes (1.6m is standard)
+    public float sensitivity = 100f;
+    public float minPitch = -80f;
+    public float maxPitch = 80f;
 
-    [Header("Look Settings")]
-    public float sensitivity = 0.05f;
+    public Transform playerBody;
 
     private float xRotation = 0f;
-    private float yRotation = 0f;
+
     private InputAction lookAction;
 
     void Awake()
@@ -20,46 +19,34 @@ public class CameraController : MonoBehaviour
         lookAction.AddBinding("<Gamepad>/rightStick");
     }
 
-    void OnEnable() 
-    { 
-        lookAction.Enable(); 
-        // Auto-find player if not assigned, looking for parent or tag
-        if (playerBody == null && transform.parent != null)
-        {
-            playerBody = transform.parent;
-        }
-    }
-    
-    void OnDisable() { lookAction.Disable(); }
+    void OnEnable() => lookAction.Enable();
+    void OnDisable() => lookAction.Disable();
 
     void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
-        // Correct internal rotation to match current facing direction at start
-        Vector3 currentRotation = transform.localRotation.eulerAngles;
-        yRotation = currentRotation.y;
-        xRotation = currentRotation.x;
+
+        if (playerBody == null && transform.parent != null)
+            playerBody = transform.parent;
     }
 
-    void LateUpdate() // LateUpdate avoids jitter when following player movement
+    void Update()
     {
-        // 1. Follow Position
-        if (playerBody != null)
-        {
-            transform.position = playerBody.position + offset;
-        }
+        Vector2 look = lookAction.ReadValue<Vector2>() * sensitivity * Time.deltaTime;
 
-        // 2. Rotate Camera
-        Vector2 mouseDelta = lookAction.ReadValue<Vector2>();
-        
-        float mouseX = mouseDelta.x * sensitivity;
-        float mouseY = mouseDelta.y * sensitivity;
+        float mouseX = look.x;
+        float mouseY = look.y;
 
         xRotation -= mouseY;
-        xRotation = Mathf.Clamp(xRotation, -90f, 90f);
+        xRotation = Mathf.Clamp(xRotation, minPitch, maxPitch);
 
-        yRotation += mouseX;
+        transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
 
-        transform.rotation = Quaternion.Euler(xRotation, yRotation, 0f); // Use global rotation to decouple from player body rotation
+        playerBody.Rotate(Vector3.up * mouseX);
+    }
+
+    public float GetYaw()
+    {
+        return playerBody.eulerAngles.y;
     }
 }
