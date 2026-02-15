@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 [RequireComponent(typeof(CharacterController))]
 [RequireComponent(typeof(Inventory))]
@@ -22,9 +23,17 @@ public class PlayerMovement : MonoBehaviour
     public float gatherAngle = 90f; // degrees from camera forward
     public LayerMask gatherLayer = ~0; // default: everything
 
+    [Header("Finish")]
+    public float finishDetectRadius = 1.5f;
+    public LayerMask finishLayer = ~0;
+    public string finishSceneName = "";
+    [Tooltip("Number of keys required to exit (0 = no requirement).")]
+    public int requiredKeyCount = 2;
+
     private CharacterController controller;
     private Vector3 velocity;
     private bool isGrounded;
+    private bool isTransitioning = false;
 
     private InputAction moveAction;
     private InputAction jumpAction;
@@ -185,6 +194,45 @@ public class PlayerMovement : MonoBehaviour
         // --- Gravity ---
         velocity.y += gravity * Time.deltaTime;
         controller.Move(velocity * Time.deltaTime);
+
+        // --- Finish detection ---
+        if (!isTransitioning)
+        {
+            Collider[] finishColliders = Physics.OverlapSphere(transform.position, finishDetectRadius, finishLayer);
+            foreach (var col in finishColliders)
+            {
+                if (col.CompareTag("Finish"))
+                {
+                    // Require a minimum number of keys (if any) before allowing exit
+                    if (!HasRequiredKeyCount())
+                    {
+                        Debug.Log("Cannot exit: missing required keys.");
+                        break;
+                    }
+
+                    isTransitioning = true;
+                    if (!string.IsNullOrEmpty(finishSceneName))
+                    {
+                        Debug.Log($"Finish reached. Loading scene '{finishSceneName}'...");
+                        SceneManager.LoadScene(finishSceneName);
+                    }
+                    else
+                    {
+                        Debug.Log("Finish reached. Loading next scene (build index)...");
+                        int nextIndex = SceneManager.GetActiveScene().buildIndex + 1;
+                        if (nextIndex < SceneManager.sceneCountInBuildSettings)
+                        {
+                            SceneManager.LoadScene(nextIndex);
+                        }
+                        else
+                        {
+                            Debug.LogWarning("No next scene in build settings to load.");
+                        }
+                    }
+                    break;
+                }
+            }
+        }
     }
 
     public void DoGather()
@@ -266,6 +314,18 @@ public class PlayerMovement : MonoBehaviour
     {
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, gatherRadius);
+
+        Gizmos.color = Color.cyan;
+        Gizmos.DrawWireSphere(transform.position, finishDetectRadius);
+    }
+
+    bool HasRequiredKeyCount()
+    {
+        if (requiredKeyCount <= 0)
+            return true;
+        if (inventory == null)
+            return false;
+        return inventory.GetItemCount() >= requiredKeyCount;
     }
 
 }

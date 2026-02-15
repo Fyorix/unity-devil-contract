@@ -156,3 +156,8 @@ MonoBehaviour:
   gatherLayer:
     serializedVersion: 2
     m_Bits: 4294967295
+  finishDetectRadius: 1.5
+  finishLayer:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  finishSceneName: EndingScene
