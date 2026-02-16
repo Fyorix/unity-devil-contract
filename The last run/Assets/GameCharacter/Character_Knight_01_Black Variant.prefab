@@ -12,6 +12,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Character_Knight_01_Black Variant
       objectReference: {fileID: 0}
+    - target: {fileID: 169604, guid: 507f5dc602b42c549a32a51aa9236bb1, type: 3}
+      propertyPath: m_TagString
+      value: Player
+      objectReference: {fileID: 0}
     - target: {fileID: 430410, guid: 507f5dc602b42c549a32a51aa9236bb1, type: 3}
       propertyPath: m_LocalPosition.x
       value: -10.46
@@ -147,3 +151,13 @@ MonoBehaviour:
   jumpHeight: 1.5
   gravity: -15
   rotationSpeed: 10
+  gatherRadius: 2
+  gatherAngle: 90
+  gatherLayer:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  finishDetectRadius: 1.5
+  finishLayer:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  finishSceneName: EndingScene
