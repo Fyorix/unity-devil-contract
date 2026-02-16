@@ -1,10 +1,13 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System;
 
 public class Inventory : MonoBehaviour
 {
     [SerializeField] private List<Item> items = new List<Item>();
-    public int maxSlots = 20;
+    public int maxSlots = 3;
+
+    public event Action InventoryChanged;
 
     public bool AddItem(Item item)
     {
@@ -13,9 +16,10 @@ public class Inventory : MonoBehaviour
             Debug.Log("Inventory is full!");
             return false;
         }
-
+        Debug.Log($"there is {maxSlots - items.Count} slots left in the inventory");
         items.Add(item);
         item.OnPickup(this);
+        InventoryChanged?.Invoke();
         return true;
     }
 
@@ -25,6 +29,7 @@ public class Inventory : MonoBehaviour
         {
             items.Remove(item);
             item.OnDrop();
+            InventoryChanged?.Invoke();
             return true;
         }
         return false;
