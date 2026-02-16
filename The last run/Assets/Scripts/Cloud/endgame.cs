@@ -50,13 +50,13 @@ public class LevitationTrigger : MonoBehaviour
             isTriggered = true;
 
             
-            // Désactiver les contrôles et commencer la lévitation
             if (playerMovement != null)
                 playerMovement.enabled = false;
             if (controller != null)
                 controller.enabled = false;
             if (cameraController != null)
                 cameraController.enabled = false;
+            playerCamera.transform.parent = null;
             playerCamera.transform.position -= playerCamera.transform.forward * -3;
             playerAnimator.SetBool("isRunning", false);
             playerAnimator.SetBool("isWalking", false);
@@ -96,7 +96,6 @@ public class LevitationTrigger : MonoBehaviour
         }
         Vector3 offsetTarget = player.position + playerCamera.transform.right * -2f;
         playerCamera.transform.LookAt(offsetTarget);
-        //playerCamera.transform.LookAt(player);
     }
 
     void ShowCredits()

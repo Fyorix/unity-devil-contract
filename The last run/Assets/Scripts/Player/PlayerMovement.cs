@@ -6,16 +6,23 @@ using UnityEngine.SceneManagement;
 [RequireComponent(typeof(Inventory))]
 public class PlayerMovement : MonoBehaviour
 {
-    // Reference to the Animator
-    public Animator animator; 
-    public Transform playerCamera;
+    public Animator animator;
+    public CameraController cameraController;
+
+
+    [Header("Footstep Sound")]
+    public AudioSource footstepAudioSource;
+
+    private float stepTimer = 0f;
+
+
     public float moveSpeed = 6f;
     public float walkSpeed = 3f;
     public float backwardWalkSpeed = 3f;
+    public float rotationSpeed = 10f;
+
     public float jumpHeight = 0.2f;
     public float gravity = -20f;
-
-    public float rotationSpeed = 10f;
 
     [Header("Gathering")]
     public float gatherRadius = 2f;
@@ -37,7 +44,7 @@ public class PlayerMovement : MonoBehaviour
 
     private InputAction moveAction;
     private InputAction jumpAction;
-    private InputAction gatheringAction;
+    private InputAction gatherAction;
     private InputAction walkAction;
     private Inventory inventory;
 
@@ -46,44 +53,22 @@ public class PlayerMovement : MonoBehaviour
         controller = GetComponent<CharacterController>();
         inventory = GetComponent<Inventory>();
         Cursor.lockState = CursorLockMode.Locked;
-
-        // Auto-assign camera: prefer Camera.main, fallback to any Camera in scene
-        if (playerCamera == null)
-        {
-            Camera cam = Camera.main;
-            if (cam == null)
-            {
-                cam = FindObjectOfType<Camera>();
-            }
-
-            if (cam != null)
-            {
-                playerCamera = cam.transform;
-            }
-            else
-            {
-                Debug.LogWarning("PlayerMovement: no Camera found in scene to assign to playerCamera. Using player transform as fallback in calculations.");
-            }
-        }
+        // Camera is provided via `cameraController`. If not, code will fall back to Camera.main where needed.
 
         // --- Init Input Actions (Code-only approach) ---
         moveAction = new InputAction("Move", binding: "<Gamepad>/leftStick");
-        moveAction.AddCompositeBinding("Dpad")
+        moveAction.AddCompositeBinding("2DVector")
             .With("Up", "<Keyboard>/w")
-            .With("Up", "<Keyboard>/upArrow")
             .With("Down", "<Keyboard>/s")
-            .With("Down", "<Keyboard>/downArrow")
             .With("Left", "<Keyboard>/a")
-            .With("Left", "<Keyboard>/leftArrow")
-            .With("Right", "<Keyboard>/d")
-            .With("Right", "<Keyboard>/rightArrow");
+            .With("Right", "<Keyboard>/d");
 
         jumpAction = new InputAction("Jump", binding: "<Keyboard>/space");
         jumpAction.AddBinding("<Gamepad>/buttonSouth");
-        
-        gatheringAction = new InputAction("Gather", binding: "<Keyboard>/e");
-        gatheringAction.AddBinding("<Gamepad>/buttonWest");
-        
+
+        gatherAction = new InputAction("Gather", binding: "<Keyboard>/e");
+        gatherAction.AddBinding("<Gamepad>/buttonWest");
+
         walkAction = new InputAction("Walk", binding: "<Keyboard>/leftShift");
         walkAction.AddBinding("<Gamepad>/leftTrigger");
     }
@@ -92,7 +77,7 @@ public class PlayerMovement : MonoBehaviour
     {
         moveAction.Enable();
         jumpAction.Enable();
-        gatheringAction.Enable();
+        gatherAction.Enable();
         walkAction.Enable();
     }
 
@@ -100,42 +85,48 @@ public class PlayerMovement : MonoBehaviour
     {
         moveAction.Disable();
         jumpAction.Disable();
-        gatheringAction.Disable();
+        gatherAction.Disable();
         walkAction.Disable();
     }
 
     void Update()
     {
-        isGrounded = controller.isGrounded;
-        if (isGrounded && velocity.y < 0)
-        {
-            velocity.y = -2f; // Small negative value to keep the player grounded and allow for smooth jumping again
-        }
+        HandleMovement();
+        HandleJump();
+        ApplyGravity();
+    }
 
-        // --- Movement ---
+    void HandleMovement()
+    {
         Vector2 input = moveAction.ReadValue<Vector2>();
         bool isWalking = walkAction.IsPressed();
 
-        // Get camera direction (fallback to player transform if no camera assigned)
-        float cameraYAngle = (playerCamera != null) ? playerCamera.eulerAngles.y : transform.eulerAngles.y;
+        isGrounded = controller.isGrounded;
+        if (isGrounded && velocity.y < 0)
+            velocity.y = -2f;
 
-        // Movement & rotation
-        if(input.magnitude >= 0.1f)
+        if (input.magnitude < 0.1f)
         {
-            // Set animation state based on walking
-            if (isWalking)
+            animator.SetBool("isRunning", false);
+            animator.SetBool("isWalking", false);
+            animator.SetBool("isWalkingBackwards", false);
+            if (footstepAudioSource.isPlaying)
             {
-                animator.SetBool("isRunning", false);
-                animator.SetBool("isWalking", true);
+                Debug.Log("stop walking");
+                footstepAudioSource.Stop();
             }
-            else
+            return;
+        }
+        else if (isGrounded)
+        {
+            if (!footstepAudioSource.isPlaying)
             {
                 animator.SetBool("isRunning", true);
                 animator.SetBool("isWalking", false);
             }
 
             // Move relative to camera
-            Vector3 moveDir = Quaternion.Euler(0, cameraYAngle, 0) * new Vector3(input.x, 0, input.y);
+            // Vector3 moveDir = Quaternion.Euler(0, cameraYAngle, 0) * new Vector3(input.x, 0, input.y);
             
             // Use appropriate speed
             float currentSpeed = moveSpeed;
@@ -147,38 +138,58 @@ public class PlayerMovement : MonoBehaviour
             {
                 currentSpeed = moveSpeed * 0.5f;
             }
-            controller.Move(moveDir * currentSpeed * Time.deltaTime);
+
+            Vector3 moveDir =
+            transform.right * input.x +
+            transform.forward * input.y;
+
+            controller.Move(moveDir.normalized * currentSpeed * Time.deltaTime);
 
             // Handle backward walking animation
             if (input.y < -0.1f)
             {
                 animator.SetBool("isWalkingBackwards", true);
                 // When walking backwards, face camera direction (don't turn around)
-                Quaternion targetRotation = Quaternion.Euler(0, cameraYAngle, 0);
-                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+                // Quaternion targetRotation = Quaternion.Euler(0, cameraYAngle, 0);
+                // transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
             }
             else
             {
                 animator.SetBool("isWalkingBackwards", false);
                 // When moving forward or sideways, rotate to match movement direction
-                float targetAngle = Mathf.Atan2(input.x, input.y) * Mathf.Rad2Deg + cameraYAngle;
-                Quaternion targetRotation = Quaternion.Euler(0, targetAngle, 0);
-                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+                // float targetAngle = Mathf.Atan2(input.x, input.y) * Mathf.Rad2Deg + cameraYAngle;
+                // Quaternion targetRotation = Quaternion.Euler(0, targetAngle, 0);
+                // transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+                footstepAudioSource.Play();
             }
         }
-        else
+
+        float speed = isWalking ? walkSpeed : moveSpeed;
+
+        Vector3 move =
+            transform.right * input.x +
+            transform.forward * input.y;
+
+        controller.Move(move.normalized * speed * Time.deltaTime);
+
+        animator.SetBool("isRunning", !isWalking);
+        animator.SetBool("isWalking", isWalking);
+    }
+
+
+    void HandleJump()
+    {
+        if (jumpAction.triggered && controller.isGrounded)
         {
             // When not moving, rotate player to face camera direction
-            Quaternion targetRotation = Quaternion.Euler(0, cameraYAngle, 0);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
-            
+            animator.SetTrigger("isJumping");
             animator.SetBool("isRunning", false); // Set animation parameter
             animator.SetBool("isWalking", false); // Reset walking animation
             animator.SetBool("isWalkingBackwards", false); // Reset backward walking animation
         }
 
         // --- Gathering ---
-        if (gatheringAction.triggered && isGrounded)
+        if (gatherAction.triggered && isGrounded)
         {
             if (inventory != null && inventory.GetItemCount() < inventory.maxSlots && TryFindClosestGatherable(out _))
             {
@@ -190,8 +201,10 @@ public class PlayerMovement : MonoBehaviour
                 Debug.Log("No gatherable key in range.");
             }
         }
+    }
 
-        // --- Gravity ---
+    void ApplyGravity()
+    {
         velocity.y += gravity * Time.deltaTime;
         controller.Move(velocity * Time.deltaTime);
 
@@ -251,12 +264,14 @@ public class PlayerMovement : MonoBehaviour
 
         if (!TryFindClosestGatherable(out Collider closest))
         {
+            Debug.Log("No gatherable found in DoGather.");
             return;
         }
 
         Key key = closest.GetComponent<Key>();
         if (key != null)
         {
+            Debug.Log("Gathering key: " + key.name);
             if (inventory.AddItem(key))
             {
                 Destroy(closest.gameObject);
@@ -283,18 +298,22 @@ public class PlayerMovement : MonoBehaviour
                 continue;
             }
 
-            // Use camera transform if available, otherwise fall back to player transform
-            Vector3 camPos = (playerCamera != null) ? playerCamera.position : transform.position;
-            Vector3 camForward = (playerCamera != null) ? playerCamera.forward : transform.forward;
-            Vector3 dirTo = hitCollider.transform.position - camPos;
-            float angle = Vector3.Angle(camForward, dirTo);
-            if (angle > gatherAngle)
+            // Determine if player is facing the gatherable or standing on it.
+            // Preference: allow gather when within direct proximity, otherwise require player-facing within `gatherAngle`.
+            Vector3 dirTo = hitCollider.transform.position - transform.position;
+            float distance = dirTo.magnitude;
+
+            // If player is essentially on the object, accept immediately
+            const float onTopThreshold = 0.5f; // meters
+            if (distance > onTopThreshold)
             {
-                // Skip items outside the camera-facing cone
-                continue;
+                // Not on top: require player to be facing the object within gatherAngle
+                float angle = Vector3.Angle(transform.forward, dirTo);
+                if (angle > gatherAngle)
+                    continue; // skip if not facing within allowed angle
             }
 
-            float distance = Vector3.Distance(transform.position, hitCollider.transform.position);
+            // Use distance for choosing the closest valid gatherable
             if (distance < closestDistance)
             {
                 closestDistance = distance;
@@ -328,4 +347,10 @@ public class PlayerMovement : MonoBehaviour
         return inventory.GetItemCount() >= requiredKeyCount;
     }
 
+    public void DoJump()
+    {
+        velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+    }
+
 }
+
