@@ -11009,6 +11009,14 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 654403153802689670, guid: 60070bca547de6e42a6cba93bde981f2, type: 3}
+      propertyPath: moveSpeed
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 654403153802689670, guid: 60070bca547de6e42a6cba93bde981f2, type: 3}
+      propertyPath: walkSpeed
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 654403153802689670, guid: 60070bca547de6e42a6cba93bde981f2, type: 3}
       propertyPath: playerCamera
       value: 
       objectReference: {fileID: 794986631}
@@ -11030,43 +11038,43 @@ PrefabInstance:
       objectReference: {fileID: 8300000, guid: 89a97fe55c6c19e4095e0b4a96359171, type: 3}
     - target: {fileID: 3946985310223622450, guid: 60070bca547de6e42a6cba93bde981f2, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 420.07
+      value: 454.33
       objectReference: {fileID: 0}
     - target: {fileID: 3946985310223622450, guid: 60070bca547de6e42a6cba93bde981f2, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.41
+      value: 0.37
       objectReference: {fileID: 0}
     - target: {fileID: 3946985310223622450, guid: 60070bca547de6e42a6cba93bde981f2, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 710.77
+      value: 719.26
       objectReference: {fileID: 0}
     - target: {fileID: 3946985310223622450, guid: 60070bca547de6e42a6cba93bde981f2, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.90184504
+      value: 0.86115015
       objectReference: {fileID: 0}
     - target: {fileID: 3946985310223622450, guid: 60070bca547de6e42a6cba93bde981f2, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0.0011556192
+      value: 0.0011034674
       objectReference: {fileID: 0}
     - target: {fileID: 3946985310223622450, guid: 60070bca547de6e42a6cba93bde981f2, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0.43205777
+      value: 0.5083492
       objectReference: {fileID: 0}
     - target: {fileID: 3946985310223622450, guid: 60070bca547de6e42a6cba93bde981f2, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0.0005537013
+      value: 0.0006514605
       objectReference: {fileID: 0}
     - target: {fileID: 3946985310223622450, guid: 60070bca547de6e42a6cba93bde981f2, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
-      value: 0.092
+      value: 0.071
       objectReference: {fileID: 0}
     - target: {fileID: 3946985310223622450, guid: 60070bca547de6e42a6cba93bde981f2, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: 51.197
+      value: 61.108
       objectReference: {fileID: 0}
     - target: {fileID: 3946985310223622450, guid: 60070bca547de6e42a6cba93bde981f2, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
-      value: 0.114
+      value: 0.129
       objectReference: {fileID: 0}
     - target: {fileID: 3946985310223886076, guid: 60070bca547de6e42a6cba93bde981f2, type: 3}
       propertyPath: m_Name
@@ -14492,7 +14500,7 @@ MonoBehaviour:
   - Bienvenu au paradis
   - "Je suis \xE9tonn\xE9 de te voir ici, personne n'\xE9chappe au diable"
   - "Tu as eu une vie remplie de p\xE9ch\xE9s, ta place est en enfer"
-  - "N\xE9anmois..."
+  - "N\xE9anmoins..."
   - Il y a quelque chose de bon en toi
   - "Cette chose t'a permis d'\xE9chapper \xE0 ton destin"
   - "Cela marque le d\xE9but d'une nouvelle vie pour toi"

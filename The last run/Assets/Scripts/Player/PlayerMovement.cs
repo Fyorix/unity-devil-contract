@@ -149,12 +149,9 @@ public class PlayerMovement : MonoBehaviour
             {
                 animator.SetBool("isRunning", true);
                 animator.SetBool("isWalking", false);
+                footstepAudioSource.Play();
             }
 
-            // Move relative to camera
-            // Vector3 moveDir = Quaternion.Euler(0, cameraYAngle, 0) * new Vector3(input.x, 0, input.y);
-            
-            // Use appropriate speed
             float currentSpeed = moveSpeed;
             if (isWalking)
             {
@@ -170,23 +167,13 @@ public class PlayerMovement : MonoBehaviour
             transform.forward * input.y;
 
             controller.Move(moveDir.normalized * currentSpeed * Time.deltaTime);
-
-            // Handle backward walking animation
             if (input.y < -0.1f)
             {
                 animator.SetBool("isWalkingBackwards", true);
-                // When walking backwards, face camera direction (don't turn around)
-                // Quaternion targetRotation = Quaternion.Euler(0, cameraYAngle, 0);
-                // transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
             }
             else
             {
                 animator.SetBool("isWalkingBackwards", false);
-                // When moving forward or sideways, rotate to match movement direction
-                // float targetAngle = Mathf.Atan2(input.x, input.y) * Mathf.Rad2Deg + cameraYAngle;
-                // Quaternion targetRotation = Quaternion.Euler(0, targetAngle, 0);
-                // transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
-                footstepAudioSource.Play();
             }
         }
 
