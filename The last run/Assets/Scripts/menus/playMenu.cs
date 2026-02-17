@@ -3,10 +3,10 @@ using UnityEngine.SceneManagement;
 
 public class playMenu : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        
+        Cursor.lockState = CursorLockMode.None; // Débloque la souris
+        Cursor.visible = true;                  // Rend la souris visible
     }
 
     // Update is called once per frame
