@@ -46,7 +46,10 @@ public class PlayerMovement : MonoBehaviour
     private InputAction jumpAction;
     private InputAction gatherAction;
     private InputAction walkAction;
+    private InputAction finishAction;
     private Inventory inventory;
+    private bool waitingForFinishInput = false;
+    private string pendingFinishSceneName = null;
 
     void Awake()
     {
@@ -69,6 +72,8 @@ public class PlayerMovement : MonoBehaviour
         gatherAction = new InputAction("Gather", binding: "<Keyboard>/e");
         gatherAction.AddBinding("<Gamepad>/buttonWest");
 
+        finishAction = new InputAction("Finish", binding: "<Keyboard>/f");
+
         walkAction = new InputAction("Walk", binding: "<Keyboard>/leftShift");
         walkAction.AddBinding("<Gamepad>/leftTrigger");
     }
@@ -79,6 +84,7 @@ public class PlayerMovement : MonoBehaviour
         jumpAction.Enable();
         gatherAction.Enable();
         walkAction.Enable();
+        finishAction.Enable();
     }
 
     void OnDisable()
@@ -87,6 +93,7 @@ public class PlayerMovement : MonoBehaviour
         jumpAction.Disable();
         gatherAction.Disable();
         walkAction.Disable();
+        finishAction.Disable();
     }
 
     void Update()
@@ -94,6 +101,25 @@ public class PlayerMovement : MonoBehaviour
         HandleMovement();
         HandleJump();
         ApplyGravity();
+        HandleFinishInput();
+    }
+
+    void HandleFinishInput()
+    {
+        if (finishAction != null && finishAction.triggered && waitingForFinishInput && !isTransitioning)
+        {
+            // proceed to load pending scene if we have a valid name
+            if (!string.IsNullOrEmpty(pendingFinishSceneName))
+            {
+                isTransitioning = true;
+                Debug.Log($"Finish input pressed. Loading scene '{pendingFinishSceneName}'...");
+                SceneManager.LoadScene(pendingFinishSceneName);
+            }
+            else
+            {
+                Debug.LogError("Finish input pressed but no finish scene was specified (pendingFinishSceneName is empty). No scene will be loaded.");
+            }
+        }
     }
 
     void HandleMovement()
@@ -206,31 +232,43 @@ public class PlayerMovement : MonoBehaviour
                     // Require a minimum number of keys (if any) before allowing exit
                     if (!HasRequiredKeyCount())
                     {
+                        int missing = requiredKeyCount;
+                        if (inventory != null)
+                            missing = Mathf.Max(0, requiredKeyCount - inventory.GetItemCount());
+                        string msg = $"Missing {missing} key{(missing == 1 ? "" : "s")} to open the door";
                         Debug.Log("Cannot exit: missing required keys.");
+                        if (DoorHint.Instance != null)
+                            DoorHint.Instance.ShowMessage(msg, 2f);
                         break;
                     }
-
-                    isTransitioning = true;
-                    if (!string.IsNullOrEmpty(finishSceneName))
+                    // Player meets key requirement — wait for input to finish
+                    if (!waitingForFinishInput)
                     {
-                        Debug.Log($"Finish reached. Loading scene '{finishSceneName}'...");
-                        SceneManager.LoadScene(finishSceneName);
-                    }
-                    else
-                    {
-                        Debug.Log("Finish reached. Loading next scene (build index)...");
-                        int nextIndex = SceneManager.GetActiveScene().buildIndex + 1;
-                        if (nextIndex < SceneManager.sceneCountInBuildSettings)
+                        waitingForFinishInput = true;
+                        if (!string.IsNullOrEmpty(finishSceneName))
                         {
-                            SceneManager.LoadScene(nextIndex);
+                            pendingFinishSceneName = finishSceneName;
                         }
                         else
                         {
-                            Debug.LogWarning("No next scene in build settings to load.");
+                            // No scene name specified; record nothing and require explicit config
+                            pendingFinishSceneName = null;
                         }
+                        string hint = "Press F to exit";
+                        Debug.Log("Finish reached. Waiting for player input to exit.");
+                        if (DoorHint.Instance != null)
+                            DoorHint.Instance.ShowMessage(hint, 999f);
                     }
                     break;
                 }
+            }
+            // If no finish collider found in this check, clear waiting state
+            if (finishColliders.Length == 0 && waitingForFinishInput)
+            {
+                waitingForFinishInput = false;
+                pendingFinishSceneName = null;
+                if (DoorHint.Instance != null)
+                    DoorHint.Instance.ShowMessage("", 0.1f);
             }
         }
     }
