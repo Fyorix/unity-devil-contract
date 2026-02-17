@@ -1,4 +1,6 @@
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 using UnityEngine;
 
 
@@ -11,6 +13,7 @@ public class LockToGrid : MonoBehaviour
 
     void Update()
     {
+#if UNITY_EDITOR
         if(!EditorApplication.isPlaying)
         {
             Vector3 currentPosition = transform.position;
@@ -22,5 +25,6 @@ public class LockToGrid : MonoBehaviour
             Vector3 snappedPosition = new Vector3(snappedX, snappedY, snappedZ);
             transform.position = snappedPosition;
         }
+#endif
     }
 }
