@@ -60,6 +60,11 @@ public class DevilManagement : MonoBehaviour
     public float maxLaughInterval = 30f;
     private Coroutine laughLoopCoroutine;
 
+    [Header("Jumpscare Setup")]
+    public GameObject jumpScareUI; 
+    public AudioSource screamSound;
+    public float jumpscareDuration = 2.5f;
+
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -205,14 +210,33 @@ public class DevilManagement : MonoBehaviour
         }
     }
 
+    // 2. Remplace ta fonction OnCollisionEnter par celle-ci
     void OnCollisionEnter(Collision collision)
     {
         if (collision.transform == targetPlayer)
         {
-            // charge nouvelle scene à la collision avec le player
-            Debug.Log("collision with player");
-            SceneManager.LoadScene(onContactSceneName);
+            // On lance la coroutine pour gérer le délai
+            StartCoroutine(ExecuteJumpScare());
         }
+    }
+
+    // 3. Ajoute cette coroutine à la fin de ton script
+    IEnumerator ExecuteJumpScare()
+    {
+        // Affiche l'image et joue le son
+        if (jumpScareUI != null) jumpScareUI.SetActive(true);
+        if (screamSound != null) screamSound.Play();
+
+        // On bloque le démon pour qu'il ne continue pas à avancer
+        agent.isStopped = true;
+        isEmoting = true; 
+
+        // On attend la fin du temps défini (ex: 2.5s)
+        // On utilise WaitForSecondsRealtime au cas où le TimeScale serait modifié
+        yield return new WaitForSecondsRealtime(jumpscareDuration);
+
+        // Enfin, on change de scène
+        SceneManager.LoadScene(onContactSceneName);
     }
 
     void HandleRunLogic()
