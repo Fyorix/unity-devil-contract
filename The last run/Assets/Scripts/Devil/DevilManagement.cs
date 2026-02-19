@@ -13,6 +13,8 @@ public class DevilManagement : MonoBehaviour
     public float detectionRange;
     public LayerMask obstacleMask;
     public string onContactSceneName = "playMenuScene";
+    private float pathUpdateDeadline;
+    public float pathUpdateDelay = 0.2f;
 
     [Header("Speed")]
     public float patrolSpeed = 1.5f;
@@ -61,7 +63,7 @@ public class DevilManagement : MonoBehaviour
     private Coroutine laughLoopCoroutine;
 
     [Header("Jumpscare Setup")]
-    public GameObject jumpScareUI; 
+    public GameObject jumpScareUI;
     public AudioSource screamSound;
     public float jumpscareDuration = 2.5f;
 
@@ -119,6 +121,8 @@ public class DevilManagement : MonoBehaviour
         {
             agent.speed = patrolSpeed;
         }
+        agent.angularSpeed = agent.speed * 100f;
+        agent.acceleration = agent.speed * 4f;
 
         chaseSpeed = Math.Min(chaseSpeed + timeFactorSpeed, maxChasingSpeed);
         patrolSpeed = Math.Min(patrolSpeed + timeFactorSpeed, maxPatrolingSpeed);
@@ -135,6 +139,7 @@ public class DevilManagement : MonoBehaviour
         else
         {
             agent.isStopped = false;
+            agent.SetDestination(targetPlayer.position);
             float speed = agent.velocity.magnitude;
 
             animator.SetBool("isRunning", isRunning);
@@ -146,7 +151,11 @@ public class DevilManagement : MonoBehaviour
 
         if (isChasing && targetPlayer != null)
         {
-            agent.SetDestination(targetPlayer.position);
+            if (Time.time >= pathUpdateDeadline)
+            {
+                pathUpdateDeadline = Time.time + pathUpdateDelay;
+                agent.SetDestination(targetPlayer.position);
+            }
         }
         else
         {
@@ -202,7 +211,7 @@ public class DevilManagement : MonoBehaviour
     {
         if (patrolPoints.Length == 0) return;
 
-        if (!agent.pathPending && agent.remainingDistance < 1f)
+        if (!agent.pathPending && agent.remainingDistance < 2f)
         {
             Debug.Log("Agent at patrol point nb" + currentPatrolIndex);
             currentPatrolIndex = (currentPatrolIndex + 1) % patrolPoints.Length;
@@ -211,7 +220,7 @@ public class DevilManagement : MonoBehaviour
     }
 
     // 2. Remplace ta fonction OnCollisionEnter par celle-ci
-    void OnCollisionEnter(Collision collision)
+    void OnTriggerEnter(Collider collision)
     {
         if (collision.transform == targetPlayer)
         {
@@ -229,7 +238,7 @@ public class DevilManagement : MonoBehaviour
 
         // On bloque le démon pour qu'il ne continue pas à avancer
         agent.isStopped = true;
-        isEmoting = true; 
+        isEmoting = true;
 
         // On attend la fin du temps défini (ex: 2.5s)
         // On utilise WaitForSecondsRealtime au cas où le TimeScale serait modifié
