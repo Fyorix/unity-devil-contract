@@ -116184,13 +116184,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   dialogMessages:
-  - "Diable: Salutations, \xEAtre mortel, J'ai une prosition pour toi."
+  - "Diable: Salutations, \xEAtre mortel. J'ai une prosition pour toi."
   - "Diable: Je te propose un march\xE9, tu travailles pour moi, et en \xE9change
     je te donnerai encore plus de travail."
   - "Diable: Tu trouves \xE7a injuste ? Tu ne pensais pas m\xE9riter mieux en arrivant
     ici quand m\xEAme ?"
-  - 'Vous: Je t''en supplies, laisse moi sortir ! Je ne veux pas travailler pour
-    toi'
+  - 'Vous: Je t''en supplie, laisse moi sortir ! Je ne veux pas travailler pour toi'
   - "Diable: M\xEAme si tu voulais t'\xE9chapper, la porte est verouill\xE9e."
   - "Diable: Cette porte est v\xE9rouill\xE9e par 2 cl\xE9s, et tu n'en as aucune."
   - "Diable: Je vais te faire signer ce contrat, et tu seras \xE0 moi pour l'\xE9ternit\xE9."
