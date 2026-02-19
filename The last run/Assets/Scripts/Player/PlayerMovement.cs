@@ -47,6 +47,7 @@ public class PlayerMovement : MonoBehaviour
     private InputAction gatherAction;
     private InputAction walkAction;
     private InputAction finishAction;
+    private InputAction fillKeyCheatAction;
     private Inventory inventory;
     private bool waitingForFinishInput = false;
     private string pendingFinishSceneName = null;
@@ -76,24 +77,35 @@ public class PlayerMovement : MonoBehaviour
 
         walkAction = new InputAction("Walk", binding: "<Keyboard>/leftShift");
         walkAction.AddBinding("<Gamepad>/leftTrigger");
+
+        // Shift+K cheat: fill inventory with keys. Use ButtonWithOneModifier composite so Shift must be held.
+        fillKeyCheatAction = new InputAction("FillKeys");
+        fillKeyCheatAction.AddCompositeBinding("ButtonWithOneModifier").With("modifier", "<Keyboard>/leftShift").With("button", "<Keyboard>/k");
+        // also accept right Shift
+        fillKeyCheatAction.AddCompositeBinding("ButtonWithOneModifier").With("modifier", "<Keyboard>/rightShift").With("button", "<Keyboard>/k");
     }
 
     void OnEnable()
     {
         moveAction.Enable();
-        jumpAction.Enable();
+        // we disable because it is unused in the scene
+        // jumpAction.Enable();
         gatherAction.Enable();
         walkAction.Enable();
         finishAction.Enable();
+        fillKeyCheatAction.Enable();
+        fillKeyCheatAction.performed += OnFillKeysPerformed;
     }
 
     void OnDisable()
     {
         moveAction.Disable();
-        jumpAction.Disable();
+        // jumpAction.Disable();
         gatherAction.Disable();
         walkAction.Disable();
         finishAction.Disable();
+        fillKeyCheatAction.Disable();
+        fillKeyCheatAction.performed -= OnFillKeysPerformed;
     }
 
     void Update()
@@ -216,6 +228,44 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    void OnValidate()
+    {
+        // ensure action created in editor/play mode if missing
+        if (fillKeyCheatAction == null)
+        {
+            fillKeyCheatAction = new InputAction("FillKeys");
+            fillKeyCheatAction.AddCompositeBinding("ButtonWithOneModifier").With("modifier", "<Keyboard>/leftShift").With("button", "<Keyboard>/k");
+            fillKeyCheatAction.AddCompositeBinding("ButtonWithOneModifier").With("modifier", "<Keyboard>/rightShift").With("button", "<Keyboard>/k");
+        }
+    }
+
+    void OnFillKeysPerformed(InputAction.CallbackContext ctx)
+    {
+        FillKeys();
+    }
+
+    void FillKeys()
+    {
+        if (inventory == null)
+            return;
+
+        while (inventory.GetItemCount() < inventory.maxSlots)
+        {
+            // create a temporary Key GameObject and add it to inventory
+            var go = new GameObject("Key_Cheat");
+            var keyComp = go.AddComponent<Key>();
+            // give it a short unique id so it behaves like a real key
+            keyComp.keyId = "cheat_" + System.Guid.NewGuid().ToString("N").Substring(0, 6);
+            // mark the GameObject hidden so it doesn't clutter the hierarchy
+            go.hideFlags = HideFlags.HideAndDontSave;
+            if (!inventory.AddItem(keyComp))
+            {
+                Destroy(go);
+                break;
+            }
+        }
+    }
+
     void ApplyGravity()
     {
         velocity.y += gravity * Time.deltaTime;
@@ -235,10 +285,10 @@ public class PlayerMovement : MonoBehaviour
                         int missing = requiredKeyCount;
                         if (inventory != null)
                             missing = Mathf.Max(0, requiredKeyCount - inventory.GetItemCount());
-                        string msg = $"Missing {missing} key{(missing == 1 ? "" : "s")} to open the door";
+                        string msg = $"Missing MON GROS CACA {missing} key{(missing == 1 ? "" : "s")} to open the door";
                         Debug.Log("Cannot exit: missing required keys.");
                         if (DoorHint.Instance != null)
-                            DoorHint.Instance.ShowMessage(msg, 2f);
+                            DoorHint.Instance.ShowMessage(FormatDoorHintMessage(msg), 2f);
                         break;
                     }
                     // Player meets key requirement — wait for input to finish
@@ -257,7 +307,7 @@ public class PlayerMovement : MonoBehaviour
                         string hint = "Press F to exit";
                         Debug.Log("Finish reached. Waiting for player input to exit.");
                         if (DoorHint.Instance != null)
-                            DoorHint.Instance.ShowMessage(hint, 999f);
+                            DoorHint.Instance.ShowMessage(FormatDoorHintMessage(hint), 999f);
                     }
                     break;
                 }
@@ -370,6 +420,17 @@ public class PlayerMovement : MonoBehaviour
         if (inventory == null)
             return false;
         return inventory.GetItemCount() >= requiredKeyCount;
+    }
+
+    // If a DoorHint instance exists, append its parent GameObject name to help locate where the script is attached.
+    private string FormatDoorHintMessage(string msg)
+    {
+        if (DoorHint.Instance == null)
+            return msg;
+        var go = DoorHint.Instance.gameObject;
+        var parent = go.transform.parent;
+        string parentName = parent != null ? parent.name : go.name;
+        return $"{msg} (hint on: {parentName})";
     }
 
     public void DoJump()
