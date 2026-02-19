@@ -1,11 +1,14 @@
 using System;
 using UnityEngine;
+using System.Collections;
 using UnityEngine.SceneManagement;
 
 public class planeScript : MonoBehaviour
 {
-
     public Transform player;
+    public GameObject canva;
+    public AudioSource audioSourceExplosion;
+    public AudioSource audioSourceEngine;
     [Header("Timing")]
     public float timeBeforeChase = 5f;
 
@@ -25,7 +28,8 @@ public class planeScript : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-
+        canva.SetActive(false);
+        audioSourceExplosion.Stop();
     }
 
     // Update is called once per frame
@@ -71,13 +75,23 @@ public class planeScript : MonoBehaviour
         }
     }
 
-    void OnCollisionEnter(Collision collision)
+    private void OnCollisionEnter(Collision collision)
     {
         if (collision.transform == player)
         {
-            // charge nouvelle scene à la collision avec le player
+            audioSourceEngine.Stop();
+            audioSourceExplosion.Play();
+            var playerMovement = player.GetComponent<PlayerMovement>();
+            playerMovement.enabled = false;
             Debug.Log("collision with player");
-            SceneManager.LoadScene(sceneName);
+            StartCoroutine(LoadSceneWithDelay());
         }
+    }
+
+    IEnumerator LoadSceneWithDelay()
+    {
+        canva.SetActive(true);
+        yield return new WaitForSeconds(2f);
+        SceneManager.LoadScene(sceneName);
     }
 }
