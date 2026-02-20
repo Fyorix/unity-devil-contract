@@ -108,11 +108,11 @@ public class ExitButton : MonoBehaviour
         string msg;
         if (keyTotal > 0 && keyCount >= keyTotal)
         {
-            msg = $"you collected all the {keyTotal} keys — press F to trigger the button and exit";
+            msg = $"Tu as récupéré les {keyTotal} clés - appuie sur F pour sortir !";
         }
         else
         {
-            msg = $"you have {keyCount} out of {keyTotal} keys, door cannot be opened";
+            msg = $"Tu as {keyCount} clés sur {keyTotal}, la porte ne peut pas être ouverte";
         }
         uiTMPText.text = msg;
         StartUIFade(near ? 1f : 0f);
