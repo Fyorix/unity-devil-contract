@@ -57,6 +57,11 @@ public class LevitationTrigger : MonoBehaviour
                 controller.enabled = false;
             if (cameraController != null)
                 cameraController.enabled = false;
+            Vector3 rot = playerCamera.transform.eulerAngles;
+            rot.x = 0f;
+            rot.y = -90f;
+
+            playerCamera.transform.eulerAngles = rot;
             playerCamera.transform.parent = null;
             playerCamera.transform.position -= playerCamera.transform.forward * -3;
             playerAnimator.SetBool("isRunning", false);
