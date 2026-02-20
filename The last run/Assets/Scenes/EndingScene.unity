@@ -14573,7 +14573,7 @@ MonoBehaviour:
   dialoguePanel: {fileID: 1916943562}
   dialogueText: {fileID: 1528821284}
   dialogueLines:
-  - Bienvenu au paradis
+  - Bienvenue au paradis
   - "Je suis \xE9tonn\xE9 de te voir ici, personne n'\xE9chappe au diable"
   - "Tu as eu une vie remplie de p\xE9ch\xE9s, ta place est en enfer"
   - "N\xE9anmoins..."
