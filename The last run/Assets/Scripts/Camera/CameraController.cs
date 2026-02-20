@@ -32,7 +32,7 @@ public class CameraController : MonoBehaviour
 
     void Update()
     {
-        Vector2 look = lookAction.ReadValue<Vector2>() * sensitivity * Time.deltaTime;
+        Vector2 look = lookAction.ReadValue<Vector2>() * sensitivity;
 
         float mouseX = look.x;
         float mouseY = look.y;

@@ -5593,7 +5593,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffca10887552d4535a821d63d7d6ee21, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraController
-  sensitivity: 10
+  sensitivity: 0.1
   minPitch: -40
   maxPitch: 80
   playerBody: {fileID: 1329703584}
@@ -7942,6 +7942,7 @@ MonoBehaviour:
   player: {fileID: 1329703584}
   playerCamera: {fileID: 794986630}
   playerAnimator: {fileID: 1329703589}
+  audioSource: {fileID: 794986627}
   levitationSpeed: 1.5
   cameraBackSpeed: 3
   maxCameraDistance: 10

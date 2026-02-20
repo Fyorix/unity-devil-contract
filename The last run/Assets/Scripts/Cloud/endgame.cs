@@ -6,6 +6,7 @@ public class LevitationTrigger : MonoBehaviour
     public Transform player;
     public Camera playerCamera;
     public Animator playerAnimator;
+    public AudioSource audioSource;
 
     [Header("Levitation Settings")]
     public float levitationSpeed = 2f;
@@ -49,7 +50,7 @@ public class LevitationTrigger : MonoBehaviour
         {
             isTriggered = true;
 
-            
+            audioSource.time = 110;
             if (playerMovement != null)
                 playerMovement.enabled = false;
             if (controller != null)
